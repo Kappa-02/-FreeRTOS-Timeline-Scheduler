@@ -1,0 +1,10 @@
+# Requires a runner with the dependencies listed in README.md.
+stages: [test]
+qemu_tests:
+  stage: test
+  script:
+    - python3 -m unittest discover -s tests -v
+    - python3 scripts/run_tests.py
+  artifacts:
+    when: always
+    paths: [artifacts/]

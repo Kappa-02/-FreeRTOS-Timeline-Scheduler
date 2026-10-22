@@ -1,0 +1,25 @@
+# Native and cross-compilation output
+**/Output/
+/build/
+/artifacts/
+*.o
+*.elf
+*.hex
+*.bin
+*.map
+*.lst
+*.su
+
+# Python and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Local editor and OS files
+.vscode/
+.idea/
+*.code-workspace
+.directory
+.DS_Store
+Thumbs.db

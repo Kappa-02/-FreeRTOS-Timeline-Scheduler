@@ -1,0 +1,32 @@
+name: Scheduler tests
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  qemu:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install cross toolchain and emulator
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm make
+      - name: Test configuration validation and result parsing
+        run: python3 -m unittest discover -s tests -v
+      - name: Run priority and timeline scenarios
+        run: python3 scripts/run_tests.py
+      - name: Build generated application
+        run: |
+          python3 Tools/scheduler_generator.py -c Tools/system_config.json -o artifacts/generated_main.c
+          make -C Demo clean
+          make -C Demo all MAIN_SOURCE=../artifacts/generated_main.c
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: qemu-test-logs
+          path: artifacts/
+          retention-days: 14

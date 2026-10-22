@@ -4,7 +4,7 @@ permissions:
   contents: read
 jobs:
   qemu:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
@@ -12,9 +12,15 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install cross toolchain and emulator
+        timeout-minutes: 8
+        shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm make
+          mkdir -p artifacts
+          apt_options=(-o Acquire::Retries=2 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30)
+          sudo apt-get "${apt_options[@]}" update 2>&1 | tee artifacts/toolchain-update.log
+          sudo env DEBIAN_FRONTEND=noninteractive apt-get "${apt_options[@]}" install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm make 2>&1 | tee artifacts/toolchain-install.log
+          arm-none-eabi-gcc --version
+          qemu-system-arm --version
       - name: Test configuration validation and result parsing
         run: python3 -m unittest discover -s tests -v
       - name: Run priority and timeline scenarios
